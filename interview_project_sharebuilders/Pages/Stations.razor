@@ -1,0 +1,60 @@
+﻿@namespace interview_project_sharebuilder.Pages
+@page "/"
+@using interview_project_sharebuilders.Models;
+@using interview_project_sharebuilders.Services;
+@inject IStationService StationService
+
+<PageTitle>Stations</PageTitle>
+
+<h3>Stations</h3>
+
+<!-- Dropdown to select a station -->
+<select @onchange="OnStationChange" class="select-dropdown">
+    @foreach (var station in stations)
+    {
+        <option value="@station.CallLetters">@station.CallLetters</option>
+    }
+</select>
+
+<!-- Display details of the selected station -->
+@if (selectedStation != null)
+{
+    <div class="station-details" title="More info about @selectedStation.CallLetters">
+        <p>Call Letters: @selectedStation.CallLetters</p>
+        <p>Market: @selectedStation.Market</p>
+        <p>Affiliation: @selectedStation.Affiliation</p>
+    </div>
+}
+
+@code {
+    // List to hold stations data
+    private List<Station> stations = new List<Station>();
+
+    // Variable to hold the currently selected station
+    private Station? selectedStation;
+
+    // Override the OnInitializedAsync to fetch stations when the component initializes
+    protected override async Task OnInitializedAsync()
+    {
+        stations = await StationService.GetStationsAsync();
+    }
+
+    // Event handler for when a new station is selected from the dropdown
+    void OnStationChange(ChangeEventArgs selectEvent)
+    {
+        string? selectedCallLetters = selectEvent.Value?.ToString();
+
+        // Update selectedStation based on the selected value; reset if the selection is empty
+        if (string.IsNullOrEmpty(selectedCallLetters))
+        {
+            selectedStation = null;
+        }
+        else
+        {
+            selectedStation = stations.FirstOrDefault(station => station.CallLetters == selectedCallLetters);
+        }
+
+        // Notify the component that its state has changed and it should re-render
+        StateHasChanged();
+    }
+}
